@@ -35,7 +35,7 @@
 | Telnet | 完整 IAC 協商，舊交換器、DDC 控制器可用 |
 | TCP / UDP | Client 與 Server 模式；送出 UTF-8 文字、JSON、HEX；收到的 JSON 自動排版上色 |
 | 本機 Shell | Windows 為 PowerShell / cmd（ConPTY），macOS / Linux 為預設 shell |
-| Session 管理 | 依案場資料夾分組、搜尋、拖曳整理、複製、匯入 / 匯出（不含密碼） |
+| Session 管理 | 依案場資料夾分組、搜尋、拖曳整理、複製、匯入 / 匯出（不含密碼）；從 Google 試算表匯入主機與 SSH port（可選用 AI 解析：Anthropic Claude API 或 OpenRouter）；首頁「更新列表」重新讀取表格，只重新分析有變動的列並更新 port；側欄圓點顯示每個 session 連不連得上（啟動時 64 條並行全部檢查，之後每 5 分鐘） |
 | SFTP | SSH 連線後左側自動顯示遠端檔案；跟隨終端機目錄；上傳下載（可拖曳）；遠端複製 / 搬移；權限設定；完整鍵盤操作 |
 | 文字編輯器 | 內建 VS Code 編輯器核心（Monaco，離線可用）；UTF-8 / Big5、LF / CRLF；存檔前檢查遠端是否被改過並顯示差異；權限不足時用 sudo 存檔；也可改用 VS Code 等外部編輯器（存檔自動上傳） |
 | SSH 通道 | Local / Remote / Dynamic（SOCKS5），一鍵開關，可隨 session 自動啟動 |

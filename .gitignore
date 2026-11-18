@@ -6,3 +6,6 @@ frontend/dist/*
 frontend/node_modules
 *.syso
 .DS_Store
+
+# local secrets (API keys)
+.env

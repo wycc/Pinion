@@ -3,6 +3,12 @@
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as bookmarks$0 from "../importer/bookmarks/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as sheets$0 from "../importer/sheets/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as store$0 from "../store/models.js";
 
 /**
@@ -45,11 +51,68 @@ export interface FileFilter {
 }
 
 /**
+ * ImportCount reports the outcome of an import.
+ */
+export interface ImportCount {
+    "added": number;
+    "updated": number;
+}
+
+/**
+ * RefreshResult reports what "refresh list" did.
+ */
+export interface RefreshResult {
+    "diff": sheets$0.Diff;
+    "method": string;
+
+    /**
+     * sessions found in the sheet
+     */
+    "sessions": number;
+    "added": number;
+    "updated": number;
+    "skipped": number;
+
+    /**
+     * sessions in the target folder no longer in the sheet (kept)
+     */
+    "missing": number;
+}
+
+/**
  * SessionTree is the full sidebar state.
  */
 export interface SessionTree {
     "folders": string[] | null;
     "sessions": (store$0.Session | null)[] | null;
+}
+
+/**
+ * SheetPreview is what a sheet would import.
+ */
+export interface SheetPreview {
+    "result": bookmarks$0.Result | null;
+
+    /**
+     * "ai" or "rules"
+     */
+    "method": string;
+
+    /**
+     * rows in the sheet / analysed this time / gone
+     */
+    "diff": sheets$0.Diff;
+}
+
+/**
+ * SheetRequest describes a Google Sheets import.
+ */
+export interface SheetRequest {
+    "url": string;
+    "defaultHost": string;
+    "defaultUser": string;
+    "folder": string;
+    "useAI": boolean;
 }
 
 /**

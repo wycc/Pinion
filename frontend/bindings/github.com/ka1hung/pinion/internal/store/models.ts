@@ -212,6 +212,43 @@ export interface Settings {
      */
     "serverRoot": string;
     "serverIdleMinutes": number;
+
+    /**
+     * Google Sheets import: the last sheet used and the values filled in for
+     * rows that lack them, so a re-import (to pick up changed ports) is one click.
+     */
+    "sheetUrl": string;
+    "sheetDefaultHost": string;
+    "sheetDefaultUser": string;
+    "sheetFolder": string;
+
+    /**
+     * parse with AI when an API key is set
+     */
+    "sheetUseAI": boolean;
+
+    /**
+     * SessionProbe checks in the background whether sessions are reachable
+     * (TCP connect at startup, then every 5 minutes).
+     */
+    "sessionProbe": boolean;
+
+    /**
+     * AI parsing service: "anthropic" (default) or "openrouter". Each has its
+     * own model (empty = default); API keys are kept in the OS credential store,
+     * never in settings.
+     */
+    "aiProvider": string;
+
+    /**
+     * Anthropic model ID
+     */
+    "aiModel": string;
+
+    /**
+     * OpenRouter model ID, e.g. anthropic/claude-opus-5.5
+     */
+    "openRouterModel": string;
 }
 
 export interface TelnetConfig {

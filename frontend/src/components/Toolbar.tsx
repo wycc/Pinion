@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Plus, Terminal, FileText, Columns2, Radio, Download, Settings, PanelLeft, Zap,
+  Plus, Terminal, FileText, Columns2, Radio, Download, FileSpreadsheet, Settings, PanelLeft, Zap,
 } from "lucide-react";
 import { useStore } from "../lib/store";
 import { openLocal, openAdhoc, parseQuick } from "../lib/actions";
@@ -56,6 +56,9 @@ export default function Toolbar() {
         </button>
         <button className="btn" title={t("toolbar.importTitle")} onClick={() => st.set("importOpen", true)}>
           <Download size={15} /> {t("toolbar.import")}
+        </button>
+        <button className="btn" title={t("toolbar.sheetTitle")} onClick={() => st.set("importOpen", "sheet")}>
+          <FileSpreadsheet size={15} /> <span className="max-[1100px]:hidden">{t("toolbar.sheet")}</span>
         </button>
       </div>
       <div className="flex-1" />

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronRight, ChevronDown, Folder, FolderOpen, Server, Cpu, Network, TerminalSquare, Search,
-  Plus, FolderPlus, Pencil, Copy, Trash2, Play, Upload, Download, Cable, HardDrive, FolderTree,
+  Plus, FolderPlus, Pencil, Copy, Trash2, Play, Upload, Download, Cable, HardDrive, FolderTree, Activity,
 } from "lucide-react";
 import { useStore, toast, type SidebarView } from "../lib/store";
 import { SessionService, errMsg, type store as S } from "../lib/api";
@@ -11,6 +11,24 @@ import TunnelsPanel from "./panels/TunnelsPanel";
 import ServersPanel from "./panels/ServersPanel";
 import SftpPanel from "./SftpPanel";
 import { useT } from "../lib/i18n";
+import { useProbe, probeable, probeNow, type ProbeResult } from "../lib/probe";
+
+/** Text describing a session's last probe, for tooltips. */
+function probeText(t: ReturnType<typeof useT>, r: ProbeResult | undefined): string {
+  if (!r) return t("sidebar.probe.pending");
+  const at = new Date(r.at).toLocaleTimeString();
+  return r.ok
+    ? t("sidebar.probe.up", { addr: r.addr, ms: r.latencyMs, at })
+    : t("sidebar.probe.down", { addr: r.addr, error: r.error ?? "", at });
+}
+
+/** Reachability dot: green = reachable, red = not, grey = not probed yet. */
+function ProbeDot({ id }: { id: string }) {
+  const t = useT();
+  const r = useProbe((s) => s.r[id]);
+  const cls = !r ? "bg-zinc-400/50" : r.ok ? "bg-emerald-500" : "bg-red-500";
+  return <span className={"h-1.5 w-1.5 shrink-0 rounded-full " + cls} title={probeText(t, r)} />;
+}
 
 export function typeIcon(type: string, size = 14) {
   switch (type) {
@@ -179,6 +197,9 @@ function SessionTree() {
     SessionService.AddFolder(parent ? parent + "/" + name : name).catch((e) => toast("error", errMsg(e)));
   };
 
+  const probeOn = useStore((st) => st.settings?.sessionProbe ?? true);
+  const probeResults = useProbe((st) => st.r);
+
   const folderMenu = (e: React.MouseEvent, n: Node) =>
     openMenu(e, [
       { label: t("sidebar.newSessionHere"), icon: <Plus size={14} />, onClick: () => set("sessionEditor", { folder: n.path }) },
@@ -188,6 +209,13 @@ function SessionTree() {
         icon: <Play size={14} />,
         onClick: () => collect(n).forEach((s) => openSession(s.id)),
       },
+      ...(probeOn
+        ? [{
+            label: t("sidebar.probe.checkFolder"),
+            icon: <Activity size={14} />,
+            onClick: () => probeNow(collect(n).filter(probeable).map((s) => s.id)),
+          }]
+        : []),
       { separator: true },
       {
         label: t("common.rename"),
@@ -242,6 +270,9 @@ function SessionTree() {
         icon: <Copy size={14} />,
         onClick: () => SessionService.Duplicate(s.id).catch((er) => toast("error", errMsg(er))),
       },
+      ...(probeOn && probeable(s)
+        ? [{ label: t("sidebar.probe.checkNow"), icon: <Activity size={14} />, onClick: () => probeNow([s.id]) }]
+        : []),
       { separator: true },
       {
         label: t("common.delete"),
@@ -300,8 +331,11 @@ function SessionTree() {
           onClick={() => setSelected(s.id)}
           onDoubleClick={() => openSession(s.id)}
           onContextMenu={(e) => sessionMenu(e, s)}
-          title={`${sessionSubtitle(s)}${s.notes ? "\n" + s.notes : ""}`}
+          title={`${sessionSubtitle(s)}${s.notes ? "\n" + s.notes : ""}${
+            probeOn && probeable(s) ? "\n" + probeText(t, probeResults[s.id]) : ""
+          }`}
         >
+          {probeOn && probeable(s) ? <ProbeDot id={s.id} /> : <span className="w-1.5 shrink-0" />}
           {s.color && <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: s.color }} />}
           {typeIcon(s.type)}
           <span className="truncate">{s.name}</span>

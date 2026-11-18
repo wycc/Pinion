@@ -253,6 +253,48 @@ func (s *Store) SaveMany(list []*Session) error {
 	return s.saveLocked()
 }
 
+// UpsertSSH saves imported SSH sessions. A session whose folder and name match
+// an existing SSH session updates that session's host, port and user (other
+// settings and saved passwords are kept); the rest are added. Returns how many
+// were added and updated.
+func (s *Store) UpsertSSH(list []*Session) (added, updated int, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	now := time.Now()
+	idx := map[string]*Session{}
+	for _, x := range s.data.Sessions {
+		if x.Type == TypeSSH && x.SSH != nil {
+			idx[x.Folder+"\x00"+x.Name] = x
+		}
+	}
+	for _, in := range list {
+		c := clone(in)
+		c.Folder = CleanFolder(c.Folder)
+		c.Normalize()
+		if c.Type == TypeSSH {
+			if ex := idx[c.Folder+"\x00"+c.Name]; ex != nil {
+				if ex.SSH.Host != c.SSH.Host || ex.SSH.Port != c.SSH.Port || (c.SSH.User != "" && ex.SSH.User != c.SSH.User) {
+					ex.SSH.Host, ex.SSH.Port = c.SSH.Host, c.SSH.Port
+					if c.SSH.User != "" {
+						ex.SSH.User = c.SSH.User
+					}
+					ex.UpdatedAt = now
+					updated++
+				}
+				continue
+			}
+		}
+		c.ID = NewID()
+		c.CreatedAt, c.UpdatedAt = now, now
+		s.data.Sessions = append(s.data.Sessions, c)
+		if c.Type == TypeSSH {
+			idx[c.Folder+"\x00"+c.Name] = c
+		}
+		added++
+	}
+	return added, updated, s.saveLocked()
+}
+
 // Delete removes a session.
 func (s *Store) Delete(id string) error {
 	s.mu.Lock()

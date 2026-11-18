@@ -13,6 +13,13 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as bookmarks$0 from "../importer/bookmarks/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as store$0 from "../store/models.js";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
 
 /**
  * Commit imports all supported sessions under targetFolder ("" = root) and
@@ -23,11 +30,28 @@ export function Commit(path: string, targetFolder: string): $CancellablePromise<
 }
 
 /**
+ * CommitSessions saves previewed sessions under targetFolder ("" = root).
+ * Sessions that already exist there with the same name have their host, port
+ * and user updated instead of being duplicated.
+ */
+export function CommitSessions(sessions: (store$0.Session | null)[] | null, folders: string[] | null, targetFolder: string): $CancellablePromise<$models.ImportCount> {
+    return $Call.ByID(2205276489, sessions, folders, targetFolder);
+}
+
+/**
  * DetectPaths returns existing session .ini files in their usual locations
  * (Windows only; empty elsewhere).
  */
 export function DetectPaths(): $CancellablePromise<string[] | null> {
     return $Call.ByID(2914399662);
+}
+
+/**
+ * HasAIKey reports whether an API key is stored for provider
+ * ("anthropic" or "openrouter"; "" = anthropic).
+ */
+export function HasAIKey(provider: string): $CancellablePromise<boolean> {
+    return $Call.ByID(68795484, provider);
 }
 
 /**
@@ -42,4 +66,29 @@ export function PickFile(): $CancellablePromise<string> {
  */
 export function Preview(path: string): $CancellablePromise<bookmarks$0.Result | null> {
     return $Call.ByID(3249358143, path);
+}
+
+/**
+ * PreviewSheet downloads the sheet and parses it without saving sessions. The
+ * request is remembered in settings so "refresh list" can repeat it.
+ */
+export function PreviewSheet(req: $models.SheetRequest): $CancellablePromise<$models.SheetPreview | null> {
+    return $Call.ByID(3100629794, req);
+}
+
+/**
+ * RefreshSheet re-reads the last imported sheet with the saved options,
+ * re-analyses only the rows that changed, and updates the sessions: changed
+ * host/port/user are updated in place and new ones added. Sessions whose rows
+ * were removed from the sheet are counted but not deleted.
+ */
+export function RefreshSheet(): $CancellablePromise<$models.RefreshResult | null> {
+    return $Call.ByID(2075027119);
+}
+
+/**
+ * SetAIKey stores a provider's API key in the OS credential store ("" removes it).
+ */
+export function SetAIKey(provider: string, key: string): $CancellablePromise<void> {
+    return $Call.ByID(4143281036, provider, key);
 }

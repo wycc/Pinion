@@ -59,7 +59,7 @@ interface State {
   sidebarOpen: boolean;
   sessionEditor: SessionEditorState | null;
   settingsOpen: boolean;
-  importOpen: boolean;
+  importOpen: boolean | "sheet"; // "sheet" opens on the Google Sheets source
   quickOpen: boolean;
   vaultOpen: boolean;
 

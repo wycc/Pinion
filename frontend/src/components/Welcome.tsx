@@ -1,7 +1,9 @@
-import { Plus, Terminal, Download, Zap } from "lucide-react";
-import { useStore } from "../lib/store";
+import { useState } from "react";
+import { Plus, Terminal, Download, Zap, FileSpreadsheet, RefreshCw } from "lucide-react";
+import { useStore, toast } from "../lib/store";
 import { openLocal, openSession } from "../lib/actions";
-import { isMac } from "../lib/api";
+import { isMac, errMsg } from "../lib/api";
+import { ImportService } from "../lib/services";
 import { typeIcon } from "./Sidebar";
 import { useT } from "../lib/i18n";
 
@@ -10,6 +12,36 @@ export default function Welcome() {
   const { sessions, set } = useStore();
   const recent = [...sessions].sort((a, b) => (b.updatedAt > a.updatedAt ? 1 : -1)).slice(0, 8);
   const mod = isMac ? "⌘" : "Ctrl+Shift+";
+  const sheetUrl = useStore((s) => s.settings?.sheetUrl);
+  const [refreshing, setRefreshing] = useState(false);
+  const [summary, setSummary] = useState("");
+
+  // Re-read the imported Google Sheet; only rows that changed are analysed again.
+  const refresh = async () => {
+    if (!sheetUrl) return set("importOpen", "sheet");
+    setRefreshing(true);
+    try {
+      const r = await ImportService.RefreshSheet();
+      if (!r) return;
+      let msg = t("welcome.refresh.done", {
+        rows: r.diff.rows,
+        changed: r.diff.changed,
+        method: t(r.method === "ai" ? "welcome.refresh.ai" : "welcome.refresh.rules"),
+        added: r.added,
+        updated: r.updated,
+      });
+      if (r.diff.removed) msg += t("welcome.refresh.removed", { n: r.diff.removed });
+      if (r.missing) msg += t("welcome.refresh.missing", { n: r.missing });
+      if (r.skipped) msg += t("welcome.refresh.skipped", { n: r.skipped });
+      setSummary(msg);
+      toast("success", msg);
+    } catch (e) {
+      toast("error", errMsg(e));
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <div className="flex flex-1 items-center justify-center overflow-auto">
       <div className="w-[520px] max-w-full p-6">
@@ -33,7 +65,20 @@ export default function Welcome() {
           <button className="btn justify-start !py-2" onClick={() => set("importOpen", true)}>
             <Download size={16} /> {t("welcome.import")}
           </button>
+          <button className="btn justify-start !py-2" onClick={() => set("importOpen", "sheet")}>
+            <FileSpreadsheet size={16} /> {t("welcome.sheet")}
+          </button>
+          <button
+            className="btn justify-start !py-2"
+            disabled={refreshing}
+            title={sheetUrl ? t("welcome.refresh.title", { url: sheetUrl }) : t("welcome.refresh.none")}
+            onClick={refresh}
+          >
+            <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
+            {refreshing ? t("welcome.refresh.busy") : t("welcome.refresh")}
+          </button>
         </div>
+        {summary && <div className="mt-2 text-[13px] text-mute">{summary}</div>}
         {recent.length > 0 && (
           <>
             <div className="mb-1 mt-6 text-mute">{t("welcome.recent")}</div>

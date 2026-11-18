@@ -14,5 +14,6 @@ func Services(c *Core) []application.Service {
 		application.NewService(NewTunnelService(c)),
 		application.NewService(NewServerService(c)),
 		application.NewService(NewImportService(c)),
+		application.NewService(NewProbeService(c)),
 	}
 }

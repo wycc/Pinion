@@ -4,6 +4,7 @@ import { useStore, toast } from "../lib/store";
 import { refreshTree, loadSettings, applyTheme, openLocal, closeTab } from "../lib/actions";
 import { terminals } from "../lib/terminals";
 import { initTransfers } from "../lib/transfers";
+import { initProbe } from "../lib/probe";
 import Toolbar from "./Toolbar";
 import Sidebar from "./Sidebar";
 import Workspace from "./Workspace";
@@ -31,6 +32,7 @@ export default function App() {
       on<P.Request>("prompt", (p) => useStore.getState().pushPrompt(p)),
       on<string>("prompt:cancel", (id) => useStore.getState().dropPrompt(id)),
       on("sessions:changed", () => refreshTree()),
+      initProbe(),
       on<any>("settings:changed", (s) => {
         useStore.getState().setSettings(s);
         applyTheme();
@@ -115,8 +117,9 @@ export default function App() {
       <StatusBar />
       {st.prompts.length > 0 && <PromptDialog req={st.prompts[0]} />}
       {st.sessionEditor && <SessionEditor init={st.sessionEditor} />}
-      {st.settingsOpen && <SettingsDialog />}
       {st.importOpen && <ImportDialog />}
+      {/* after ImportDialog so "open settings" from the import dialog shows on top */}
+      {st.settingsOpen && <SettingsDialog />}
       {st.quickOpen && <QuickConnect />}
       <VaultDialog />
       <ContextMenuHost />

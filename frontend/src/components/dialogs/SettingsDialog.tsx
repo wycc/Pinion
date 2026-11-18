@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FolderOpen, Trash2, Upload } from "lucide-react";
 import { SystemService, errMsg, type store as S } from "../../lib/api";
-import { EditorService } from "../../lib/services";
+import { EditorService, ImportService } from "../../lib/services";
 import { useStore, toast } from "../../lib/store";
 import { applyTheme } from "../../lib/actions";
 import { Modal, Field, Check, confirmDialog } from "../ui";
@@ -23,7 +23,7 @@ export default function SettingsDialog() {
   const set = useStore((s) => s.set);
   const cur = useStore((s) => s.settings);
   const [s, setS] = useState<S.Settings | null>(cur);
-  const [tab, setTab] = useState<"general" | "terminal" | "editor" | "files" | "hosts">("general");
+  const [tab, setTab] = useState<"general" | "terminal" | "editor" | "files" | "hosts" | "ai">("general");
   const [kh, setKh] = useState<KH[]>([]);
   const [detected, setDetected] = useState("");
   const [info, setInfo] = useState<any>(null);
@@ -61,6 +61,7 @@ export default function SettingsDialog() {
     ["editor", t("settings.tab.editor")],
     ["files", t("settings.tab.files")],
     ["hosts", t("settings.tab.hosts")],
+    ["ai", t("settings.tab.ai")],
   ] as const;
 
   return (
@@ -88,6 +89,10 @@ export default function SettingsDialog() {
             <>
               <Check checked={s.sftpAutoSwitch} onChange={(v) => up({ sftpAutoSwitch: v })}>
                 {t("settings.sftpAutoSwitch")}
+              </Check>
+              <br />
+              <Check checked={s.sessionProbe} onChange={(v) => up({ sessionProbe: v })}>
+                {t("settings.sessionProbe")}
               </Check>
               <Field label={t("settings.language")}>
                 <select className="input" value={s.language || "system"} onChange={(e) => up({ language: e.target.value })}>
@@ -203,6 +208,7 @@ export default function SettingsDialog() {
               </Field>
             </>
           )}
+          {tab === "ai" && <AISettings s={s} up={up} />}
           {tab === "hosts" && (
             <div>
               <div className="mb-2 text-[13px] text-mute">{t("settings.hostsHint")}</div>
@@ -345,5 +351,105 @@ function FontPicker(props: { kind: FontKind; value: string; size: number; onChan
         </div>
       )}
     </div>
+  );
+}
+
+const AI_PROVIDERS = {
+  anthropic: {
+    defaultModel: "claude-haiku-5-5",
+    keyPlaceholder: "sk-ant-…",
+    keyURL: "https://console.anthropic.com/settings/keys",
+    modelField: "aiModel",
+  },
+  openrouter: {
+    defaultModel: "anthropic/claude-haiku-5.5",
+    keyPlaceholder: "sk-or-…",
+    keyURL: "https://openrouter.ai/settings/keys",
+    modelField: "openRouterModel",
+  },
+} as const;
+type AIProvider = keyof typeof AI_PROVIDERS;
+
+function AISettings({ s, up }: { s: S.Settings; up: (p: Partial<S.Settings>) => void }) {
+  const t = useT();
+  const provider: AIProvider = s.aiProvider === "openrouter" ? "openrouter" : "anthropic";
+  const cfg = AI_PROVIDERS[provider];
+  const [hasKey, setHasKey] = useState(false);
+  const [key, setKey] = useState("");
+  useEffect(() => {
+    setKey("");
+    ImportService.HasAIKey(provider).then(setHasKey);
+  }, [provider]);
+  const saveKey = async (v: string) => {
+    try {
+      await ImportService.SetAIKey(provider, v);
+      setHasKey(!!v.trim());
+      setKey("");
+      if (v.trim()) toast("success", t("settings.ai.keySavedToast"));
+    } catch (e) {
+      toast("error", errMsg(e));
+    }
+  };
+  return (
+    <>
+      <p className="text-mute">{t("settings.ai.intro")}</p>
+      <Field label={t("settings.ai.provider")}>
+        <select
+          className="input"
+          value={provider}
+          onChange={async (e) => {
+            // Saved right away, like the key, so the import dialog uses it even
+            // if this dialog is closed without pressing Save.
+            const v = e.target.value;
+            up({ aiProvider: v });
+            const cur = useStore.getState().settings;
+            if (cur) {
+              const next = { ...cur, aiProvider: v };
+              try {
+                await SystemService.SaveSettings(next);
+                useStore.getState().setSettings(next);
+              } catch (err) {
+                toast("error", errMsg(err));
+              }
+            }
+          }}
+        >
+          <option value="anthropic">{t("settings.ai.provider.anthropic")}</option>
+          <option value="openrouter">{t("settings.ai.provider.openrouter")}</option>
+        </select>
+      </Field>
+      <Field
+        label={t("settings.ai.key")}
+        hint={
+          <a className="cursor-pointer underline" onClick={() => SystemService.OpenURL(cfg.keyURL)}>
+            {t(provider === "openrouter" ? "settings.ai.getKeyOpenRouter" : "settings.ai.getKey")}
+          </a>
+        }
+      >
+        <div className="flex gap-1">
+          <input
+            className="input font-mono"
+            type="password"
+            autoComplete="off"
+            value={key}
+            placeholder={hasKey ? "••••••••" : cfg.keyPlaceholder}
+            onChange={(e) => setKey(e.target.value)}
+          />
+          <button className="btn" disabled={!key.trim()} onClick={() => saveKey(key)}>{t("settings.ai.saveKey")}</button>
+          {hasKey && (
+            <button className="btn" onClick={() => saveKey("")}><Trash2 size={14} /> {t("settings.ai.removeKey")}</button>
+          )}
+        </div>
+      </Field>
+      <div className="text-[13px] text-mute">{hasKey ? t("settings.ai.keySaved") : t("settings.ai.keyNone")}</div>
+      <Field label={t("settings.ai.model")} hint={t("settings.ai.modelHint", { model: cfg.defaultModel })}>
+        <input
+          className="input font-mono"
+          value={s[cfg.modelField] ?? ""}
+          placeholder={cfg.defaultModel}
+          onChange={(e) => up({ [cfg.modelField]: e.target.value } as Partial<S.Settings>)}
+        />
+      </Field>
+    </>
   );
 }

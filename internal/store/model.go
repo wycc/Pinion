@@ -147,6 +147,25 @@ type Settings struct {
 
 	ServerRoot        string `json:"serverRoot"` // default folder for TFTP/HTTP/FTP
 	ServerIdleMinutes int    `json:"serverIdleMinutes"`
+
+	// Google Sheets import: the last sheet used and the values filled in for
+	// rows that lack them, so a re-import (to pick up changed ports) is one click.
+	SheetURL         string `json:"sheetUrl"`
+	SheetDefaultHost string `json:"sheetDefaultHost"`
+	SheetDefaultUser string `json:"sheetDefaultUser"`
+	SheetFolder      string `json:"sheetFolder"`
+	SheetUseAI       bool   `json:"sheetUseAI"` // parse with AI when an API key is set
+
+	// SessionProbe checks in the background whether sessions are reachable
+	// (TCP connect at startup, then every 5 minutes).
+	SessionProbe bool `json:"sessionProbe"`
+
+	// AI parsing service: "anthropic" (default) or "openrouter". Each has its
+	// own model (empty = default); API keys are kept in the OS credential store,
+	// never in settings.
+	AIProvider      string `json:"aiProvider"`
+	AIModel         string `json:"aiModel"`         // Anthropic model ID
+	OpenRouterModel string `json:"openRouterModel"` // OpenRouter model ID, e.g. anthropic/claude-opus-5.5
 }
 
 // Font chains that older versions stored as the default. Settings still holding
@@ -174,6 +193,7 @@ func DefaultSettings() Settings {
 		ServerIdleMinutes:  30,
 		SFTPFollowTerminal: true,
 		SFTPAutoSwitch:     true,
+		SessionProbe:       true,
 	}
 }
 

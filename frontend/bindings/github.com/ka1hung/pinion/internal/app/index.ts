@@ -3,6 +3,7 @@
 
 import * as EditorService from "./editorservice.js";
 import * as ImportService from "./importservice.js";
+import * as ProbeService from "./probeservice.js";
 import * as SFTPService from "./sftpservice.js";
 import * as SerialService from "./serialservice.js";
 import * as ServerService from "./serverservice.js";
@@ -13,6 +14,7 @@ import * as TunnelService from "./tunnelservice.js";
 export {
     EditorService,
     ImportService,
+    ProbeService,
     SFTPService,
     SerialService,
     ServerService,
@@ -26,7 +28,11 @@ export type {
     AppInfo,
     FileEntry,
     FileFilter,
+    ImportCount,
+    RefreshResult,
     SessionTree,
+    SheetPreview,
+    SheetRequest,
     StreamInfo,
     TunnelStatus
 } from "./models.js";

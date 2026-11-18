@@ -37,7 +37,7 @@
 | Telnet | Full IAC negotiation; works with old switches and building controllers |
 | TCP / UDP | Client and server modes; send UTF-8 text, JSON or HEX; incoming JSON is pretty-printed and colorized |
 | Local shell | PowerShell / cmd on Windows (ConPTY), your default shell on macOS / Linux |
-| Sessions | Grouped by site folders; search, drag to reorganize, duplicate, import / export (without passwords) |
+| Sessions | Grouped by site folders; search, drag to reorganize, duplicate, import / export (without passwords); import hosts and SSH ports from a Google Sheet (optionally parsed by AI via the Anthropic Claude API or OpenRouter); "Refresh list" on the home screen re-reads the sheet, re-analyses only changed rows and updates ports; a dot in the sidebar shows whether each session is reachable (all checked at startup, 64 in parallel, then every 5 minutes) |
 | SFTP | Remote files appear in the sidebar once SSH connects; follows the shell's directory; upload / download (drag and drop); remote copy / move; permissions dialog; full keyboard control |
 | Editor | Built-in VS Code editor core (Monaco, works offline); UTF-8 / Big5, LF / CRLF; detects remote changes before saving and shows a diff; save with sudo when permission is denied; or use an external editor such as VS Code (saves are uploaded automatically) |
 | SSH tunnels | Local / Remote / Dynamic (SOCKS5); one-click start/stop; optional auto-start with the session |
