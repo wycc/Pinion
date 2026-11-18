@@ -1,12 +1,12 @@
 {
 	"fixed": {
-		"file_version": "0.1.4",
-		"product_version": "0.1.4"
+		"file_version": "0.1.5",
+		"product_version": "0.1.5"
 	},
 	"info": {
 		"0409": {
-			"FileVersion": "0.1.4",
-			"ProductVersion": "0.1.4",
+			"FileVersion": "0.1.5",
+			"ProductVersion": "0.1.5",
 			"CompanyName": "Pinion",
 			"FileDescription": "Cross-platform SSH / Serial / Telnet terminal with SFTP, tunnels and quick servers",
 			"LegalCopyright": "© 2026 Pinion contributors",
